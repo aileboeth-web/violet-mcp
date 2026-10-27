@@ -9,8 +9,12 @@
 | mcp-core 单元测试（`:mcp-core:test --offline`） | 通过，64/64 |
 | Go 中继 `go vet` / `go test -count=1 ./...` | 通过，20/20（新增 `TestDeviceSecretEnvironmentNewAndOldName`：旧环境变量 `EVE_RELAY_DEVICE_SECRET` 仍可用，新名优先） |
 | 与 Violet 的静态契约（14 个工具三方一致、全部只读） | 通过 |
-| Robolectric（`:app:testDebugUnitTest`，模拟）、APK 构建、APK 静态检查、PC 端到端 | **未执行** |
-| 签名、`dist/v1.3.0/` 发布包 | **未执行**（签名需要用户同意） |
+| Robolectric（`:app:testDebugUnitTest`，**模拟**） | 通过，38/38 |
+| `:app:assembleDebug` / `:app:assembleRelease` | 通过；`aapt2 dump badging`：`com.mcp.server.violet`、versionCode 6、1.3.0、应用名“Violet MCP” |
+| APK 静态检查（`tests/verify_apk.py`，debug 包） | 通过，失败 0 项 |
+| 签名（`tools/sign_release.py`，用户同意） | 通过：Android 9+ 签名者 `d5a5eeec…`（与 1.2.2 相同的轮换后密钥），Android 8.x 为旧证书，lineage 旧 → 新 |
+| 发布包（`tools/package_release.py --version 1.3.0 --relay-version 1.2.0`） | 通过：`dist/v1.3.0/`（APK、中继 linux-amd64 / arm64、源码交接包、SHA256SUMS），发布产物和交接包扫描问题 0 个 |
+| PC 端到端 | 未执行 |
 | 真机 | 无法验证（没有设备） |
 
 ## 1.2.2-eve（中继 1.1.0，未改动）— 2026-10-10
