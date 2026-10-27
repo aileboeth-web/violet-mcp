@@ -1,4 +1,4 @@
-# 工具清单与权限说明（1.3.0）
+# 工具清单与权限说明（1.4.0）
 
 服务器能暴露的工具只有下面 14 个**只读**工具，分两层控制：
 
@@ -147,6 +147,7 @@
 | `POST_NOTIFICATIONS` | 前台服务通知（可选） | 第一次点“启动”时 |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | 只针对本应用的“电池无限制”（可选），不要求关闭全局省电 | 用户在设置页点“申请”时 |
 | `PACKAGE_USAGE_STATS` | 前台应用、使用时长 | 用户在系统设置中手动开启 |
+| `REQUEST_INSTALL_PACKAGES`（1.4.0） | 安装本应用自己的更新：只装包名相同、版本更高、签名证书链包含本应用证书、SHA-256 与发布一致的安装包（`AppUpdater`）；与 MCP 工具无关 | 用户在系统设置里为本应用打开“安装未知应用” |
 
 另有 `com.mcp.server.violet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`，由 androidx.core 自动添加，只有本应用自己能使用。
 

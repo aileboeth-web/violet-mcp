@@ -15,6 +15,9 @@
     <!-- 可选：锁屏后保持 CPU 唤醒 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- 1.4.0：安装本应用自己的更新（只装包名相同、签名证书链包含本应用证书的安装包；见 AppUpdater）。
+         需要用户在系统设置里允许“安装未知应用”，系统安装时还会再校验签名 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- UsageStatsManager：用户需在系统设置中手动授予“使用情况访问权限”（AppOps，非 Root、非无障碍） -->
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
@@ -84,6 +87,11 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Read-only MCP server that keeps an authenticated TLS connection to the user's own relay so their AI assistant can query device status" />
         </service>
+
+        <!-- 应用更新的安装结果：只经本应用 PackageInstaller 会话的 PendingIntent 送达，不导出 -->
+        <receiver
+            android:name=".server.UpdateInstallReceiver"
+            android:exported="false" />
 
         <!-- 系统广播（BOOT_COMPLETED / MY_PACKAGE_REPLACED 均为受保护广播，其他应用无法伪造） -->
         <receiver

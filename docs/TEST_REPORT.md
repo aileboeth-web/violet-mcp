@@ -1,5 +1,19 @@
 # 测试报告
 
+## Violet MCP 1.4.0（中继 1.2.0 不变）— 2026-10-27
+
+新增应用内更新（`mcp-core` 的 `com.mcp.server.update.UpdateChecker`、App 的 `AppUpdater` / `UpdateInstallReceiver`、设置页“应用更新”、主页提示），新增权限 `REQUEST_INSTALL_PACKAGES`。工具、鉴权、中继逻辑没有变化。
+
+| 测试 | 结果 |
+|---|---|
+| mcp-core 单元测试（`:mcp-core:test --offline`） | 通过，73/73（新增 `UpdateCheckerTest` 9 项：找安装包和校验文件、SHA-256 不一致时删除、缺附件 / 非版本号拒绝、只连白名单主机且在连接前检查、跳转到其他主机被拒绝、默认只用 https 访问 GitHub、两种校验文件格式、版本比较） |
+| Robolectric（`:app:testDebugUnitTest`，**模拟**） | 通过，47/47（新增 `AppUpdaterTest` 9 项：默认自动 / 手动不自己检查、6 小时间隔、只提醒不下载、不是本应用签名安装包的下载被删除且不安装、自动模式自己下载、失败原因保存、重启后仍显示结果、签名证书链规则、安装失败显示） |
+| `:app:assembleDebug` / `:app:assembleRelease`（R8） | 通过；产物 `violet-mcp-1.4.0-{debug,release}.apk` |
+| APK 静态检查（`tests/verify_apk.py`，debug 包） | 通过，失败 0 项。权限白名单加入 `REQUEST_INSTALL_PACKAGES`；写 / 删文件只允许 `com/mcp/server/update/` 和 `AppUpdater`；新增检查“PackageInstaller 只出现在应用更新里”“更新结果接收器不导出”；工具与协议核心仍不允许写文件 |
+| 签名（`tools/sign_release.py`，用户同意） | 通过：Android 9+ 签名者 `d5a5eeec…`（与 1.3.0 相同，可以覆盖安装），Android 8.x 为旧证书，lineage 旧 → 新 |
+| 发布包（`tools/package_release.py --version 1.4.0 --relay-version 1.2.0`） | 通过：`dist/v1.4.0/`，发布产物和交接包扫描问题 0 个；`aapt2 badging`：versionCode 7、1.4.0、带 `REQUEST_INSTALL_PACKAGES`；SHA256SUMS.txt 为应用更新需要的 `<sha256> *<文件名>` 格式 |
+| 真机（安装、系统确认、更新后服务恢复） | 无法验证（没有设备），见 DEVICE_CHECKLIST U 节 |
+
 ## Violet MCP 1.3.0（中继 1.2.0）— 2026-10-27
 
 只改名（应用名、包名 `com.mcp.server.violet`、产物名、中继名和环境变量），工具和安全逻辑没有变化。

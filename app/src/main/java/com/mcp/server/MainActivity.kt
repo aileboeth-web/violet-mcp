@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.mcp.server.server.AppUpdater
 import com.mcp.server.server.LogStore
 import com.mcp.server.server.McpServerService
 import com.mcp.server.ui.theme.McpTheme
@@ -30,6 +31,13 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 1.4.0：上次检查的结果；到时间了（且不是手动模式）就再检查一次
+        AppUpdater.restore(this)
+        AppUpdater.checkIfDue(this)
     }
 
     private fun startServer() {

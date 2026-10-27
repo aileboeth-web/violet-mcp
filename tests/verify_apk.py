@@ -28,6 +28,8 @@ EXPECTED_PERMISSIONS = {
     "android.permission.WAKE_LOCK",
     "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
     "android.permission.PACKAGE_USAGE_STATS",
+    # 1.4.0：安装本应用自己的更新（只在 AppUpdater 里用 PackageInstaller，见下面的检查）
+    "android.permission.REQUEST_INSTALL_PACKAGES",
 }
 # androidx.core 自动添加的签名级权限（只允许本应用自己使用），不是对外权限
 AUTO_PERMISSION = re.compile(r"\.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION$")
@@ -68,6 +70,10 @@ FORBIDDEN_CALLS = {
 ALLOWED_CALLERS = {
     "ClipboardManager.setPrimaryClip": {"Lcom/mcp/server/MainScreenKt;"},
 }
+# 1.4.0 应用更新：只有这些类可以写、删文件（自己缓存目录里下载的安装包）和使用 PackageInstaller。
+# 不经过 MCP，工具和协议核心（com/mcp/server/core、tools）仍然不允许任何写文件操作。
+UPDATER_PREFIXES = ("Lcom/mcp/server/update/", "Lcom/mcp/server/server/AppUpdater")
+UPDATER_ONLY_CALLS = {"File.delete", "File 写入"}
 
 
 def run(cmd: list[str], cwd: str | None = None) -> str:
@@ -127,8 +133,16 @@ def main() -> int:
             calls[current].add(line)
     own = {c: "\n".join(lines) for c, lines in calls.items()}
     for label, pattern in FORBIDDEN_CALLS.items():
-        hits = [c for c, body in own.items() if re.search(pattern, body)]
-        check(f"本应用代码不调用 {label}", not hits, ", ".join(hits))
+        hits = [c for c, body in own.items() if re.search(pattern, body)
+                and not (label in UPDATER_ONLY_CALLS and c.startswith(UPDATER_PREFIXES))]
+        check(f"本应用代码不调用 {label}" + ("（应用更新除外）" if label in UPDATER_ONLY_CALLS else ""), not hits,
+              ", ".join(hits))
+    installer = [c for c, body in own.items() if "PackageInstaller;.createSession" in body
+                 or "PackageInstaller$Session;.commit" in body]
+    check("PackageInstaller 只出现在应用更新里", bool(installer) and all(c.startswith(UPDATER_PREFIXES) for c in installer),
+          ", ".join(installer) or "没有找到")
+    check("更新结果接收器不导出", re.search(r"UpdateInstallReceiver\"[^\n]*\n(?:[^\n]*\n){0,3}?[^\n]*exported\(0x[0-9a-f]+\)=false",
+                                              manifest) is not None)
     clip = [c for c, body in own.items() if "ClipboardManager;.setPrimaryClip" in body]
     check("剪贴板写入仅来自界面“复制”按钮", set(clip) <= ALLOWED_CALLERS["ClipboardManager.setPrimaryClip"], ", ".join(clip))
     tool_classes = [c for c in own if c.startswith("Lcom/mcp/server/tools/")]

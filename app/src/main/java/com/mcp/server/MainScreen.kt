@@ -73,6 +73,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mcp.server.core.RelayClient
+import com.mcp.server.server.AppUpdater
 import com.mcp.server.server.Diagnostics
 import com.mcp.server.server.LogEntry
 import com.mcp.server.server.LogStore
@@ -99,6 +100,7 @@ private data class StatusInfo(
     val usageAccess: Boolean = true,
     val tokenProblem: String? = null,
     val storage: Settings.CredentialStorage = Settings.CredentialStorage.ENCRYPTED,
+    val update: AppUpdater.State = AppUpdater.State(),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,6 +137,7 @@ fun MainScreen(
                 usageAccess = UsageTools.hasUsageAccess(context),
                 tokenProblem = Settings.tokenProblem(context),
                 storage = storage,
+                update = AppUpdater.state,
             )
             logs = LogStore.snapshot()
             delay(1000)
@@ -226,6 +229,7 @@ fun MainScreen(
                     onOpenTools = { open(ToolsActivity::class.java) },
                     onOpenSecurity = { open(SecurityActivity::class.java) },
                     onOpenDiagnostics = { open(DiagnosticsActivity::class.java) },
+                    onOpenSettings = { open(SettingsActivity::class.java) },
                     modifier = Modifier.padding(padding),
                 )
             } else {
@@ -269,6 +273,7 @@ private fun HomeTab(
     onOpenTools: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenDiagnostics: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val service = status.service
@@ -342,6 +347,18 @@ private fun HomeTab(
                 InfoLine("最近一次工具调用",
                     if (call == null) "暂无" else "${formatTime(call.at)} · ${call.name} · ${"%.0f".format(call.ms)} 毫秒" +
                         if (call.ok) "" else " · 出错")
+            }
+        }
+
+        // ===== 应用更新（1.4.0） =====
+        if (status.update.newer) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("有新版本 ${status.update.latest}", style = MaterialTheme.typography.titleSmall)
+                    Text(status.update.message ?: "当前版本 ${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = onOpenSettings) { Text("去更新 →") }
+                }
             }
         }
 

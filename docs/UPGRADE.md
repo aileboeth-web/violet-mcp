@@ -1,5 +1,13 @@
 # 升级与回退
 
+## Violet MCP 1.3.0 → 1.4.0（应用内更新；中继不变）
+
+- 直接覆盖安装 `violet-mcp-1.4.0-release.apk`（包名、签名都与 1.3.0 相同）：令牌、中继配置、工具开关都保留，Violet 那边不用改。
+- 新增：设置 → 应用更新。默认“自动更新”：每 6 小时检查 GitHub Releases，有新版本就下载、核对 SHA-256 / 包名 / 版本 / 签名证书，再交给系统安装（通常要你点一次“更新”）。可改成“只提醒”或“手动检查”。
+- 新增权限 `REQUEST_INSTALL_PACKAGES`：要在系统设置里为本应用打开“安装未知应用”才能装更新；不打开也不影响 MCP 服务，只是更新要自己下载安装。
+- 应用会访问 `api.github.com`、`github.com` 和 GitHub 的下载服务器（不登录、不上传任何数据）；“手动检查”模式下只在你点按钮时访问。
+- 回退：卸载后装 1.3.0（数据会清空，要重新配置），或用 `adb install -r -d`（降级安装，数据保留与否取决于系统）。
+
 ## 1.2.2-eve → Violet MCP 1.3.0 / 中继 1.2.0（改名；工具和安全规则都不变）
 
 1.3.0 只改名字：应用名“Violet MCP”、包名 `com.mcp.server.violet`、发布文件 `violet-mcp-<版本>-release.apk`；中继改名 `violet-mcp-relay`（1.2.0），环境变量改为 `VIOLET_RELAY_DEVICE_SECRET`（旧名 `EVE_RELAY_DEVICE_SECRET` 仍然认）。14 个只读工具、权限、鉴权、TLS 和签名密钥都没有变化。

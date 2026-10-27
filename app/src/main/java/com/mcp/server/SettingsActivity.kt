@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,12 +62,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.mcp.server.core.RelayClient
+import com.mcp.server.server.AppUpdater
 import com.mcp.server.server.LogStore
 import com.mcp.server.server.McpServerService
 import com.mcp.server.server.Settings
 import com.mcp.server.server.WakeLockHelper
 import com.mcp.server.tools.UsageTools
 import com.mcp.server.ui.theme.McpTheme
+import kotlinx.coroutines.delay
 
 class SettingsActivity : ComponentActivity() {
 
@@ -270,6 +273,9 @@ fun SettingsScreen(
                 }
             }
 
+            // ===== 应用更新（1.4.0） =====
+            UpdateCard(canInstall = remember(permissionTick) { AppUpdater.canInstall(context) })
+
             // ===== 后台运行 =====
             Card {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -349,6 +355,86 @@ fun SettingsScreen(
         }
     }
 }
+
+@Composable
+private fun UpdateCard(canInstall: Boolean) {
+    val context = LocalContext.current
+    var mode by remember { mutableStateOf(AppUpdater.mode(context)) }
+    var upd by remember { mutableStateOf(AppUpdater.state) }
+    LaunchedEffect(Unit) {
+        AppUpdater.restore(context)
+        while (true) {
+            upd = AppUpdater.state
+            delay(500)
+        }
+    }
+    val busy = upd.phase in setOf(AppUpdater.Phase.CHECKING, AppUpdater.Phase.DOWNLOADING, AppUpdater.Phase.INSTALLING)
+    Card {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("应用更新", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "当前版本 ${BuildConfig.VERSION_NAME}" +
+                    (upd.latest?.let { "，最新发布 $it" } ?: "") +
+                    (if (upd.checkedAt > 0) "（${formatClock(upd.checkedAt)} 检查）" else ""),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((value, label) in listOf(AppUpdater.MODE_AUTO to "自动更新", AppUpdater.MODE_NOTIFY to "只提醒",
+                    AppUpdater.MODE_MANUAL to "手动检查")) {
+                    FilterChip(selected = mode == value, onClick = {
+                        mode = value
+                        AppUpdater.setMode(context, value)
+                    }, label = { Text(label) })
+                }
+            }
+            Text(
+                when (mode) {
+                    AppUpdater.MODE_AUTO -> "每 6 小时检查一次，有新版本就下载、校验，然后弹出系统的安装确认（通知栏提示）。"
+                    AppUpdater.MODE_NOTIFY -> "每 6 小时检查一次，有新版本只发通知，在这里点“下载并安装”。"
+                    else -> "只在你点“检查更新”时检查。"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            upd.message?.let {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    it + if (upd.phase == AppUpdater.Phase.DOWNLOADING && upd.progress >= 0) "（${upd.progress}%）" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (upd.phase == AppUpdater.Phase.ERROR) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(enabled = !busy, onClick = { AppUpdater.checkNow(context) }) { Text("检查更新") }
+                if (upd.newer) {
+                    TextButton(enabled = !busy, onClick = { AppUpdater.installNow(context) }) { Text("下载并安装") }
+                }
+                if (upd.pageUrl != null) {
+                    TextButton(onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(upd.pageUrl)))
+                    }) { Text("更新说明") }
+                }
+            }
+            if (!canInstall) {
+                PermissionRow("允许安装更新", "系统要求为本应用单独打开“安装未知应用”，才能安装新版本", false, "去允许") {
+                    context.startActivity(Intent(AndroidSettings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                        Uri.parse("package:${context.packageName}")))
+                }
+            }
+            Text(
+                "只从 GitHub（aileboeth-web/violet-mcp）下载；安装前核对 SHA-256、包名、版本号和签名证书，任何一项不符都不安装。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private fun formatClock(ms: Long): String =
+    java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms))
 
 @Composable
 private fun NumberField(label: String, value: String, onChange: (String) -> Unit) {

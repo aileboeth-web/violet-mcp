@@ -147,6 +147,7 @@ class McpServerService : Service() {
         Diagnostics.clearStartFailure(this)
         LogStore.setLevel(Settings.logLevel(this))
         ToolKit.init(this)
+        AppUpdater.startPeriodic(this)          // 1.4.0: update checks while the service runs (mode permitting)
         if (Settings.legacyLanAccessWasOn(this)) {
             LogStore.warn("1.1.0 的“局域网访问”（明文 HTTP）已移除，本地端点只监听 127.0.0.1；远程访问请使用 TLS 中继")
         }
@@ -182,6 +183,7 @@ class McpServerService : Service() {
     }
 
     private fun stopEverything() {
+        AppUpdater.stopPeriodic()
         unregisterNetworkCallback()
         relay?.stop()
         relay = null

@@ -12,7 +12,7 @@ Violet MCP 是给 **[Violet](https://github.com/aileboeth-web/violet-companion)*
 
 修改自 [Cazriel/mcp-server](https://github.com/Cazriel/mcp-server)：保留 Streamable HTTP、Bearer 鉴权、后台运行和开机自启；删除所有会修改设备状态的能力；新增基于 `UsageStatsManager` 的感知工具；用“手机主动连接你自己 VPS 的 TLS 中继”取代原来的明文隧道。
 
-当前版本：应用 **Violet MCP 1.3.0**（包名 `com.mcp.server.violet`），中继 **violet-mcp-relay 1.2.0**。1.3.0 由“Eve 只读 MCP 1.2.2-eve”改名而来，功能不变；包名变了，旧版不能直接覆盖升级，见 [docs/UPGRADE.md](docs/UPGRADE.md)。
+当前版本：应用 **Violet MCP 1.4.0**（包名 `com.mcp.server.violet`），中继 **violet-mcp-relay 1.2.0**。1.4.0 新增应用内更新；1.3.0 由“Eve 只读 MCP 1.2.2-eve”改名而来，包名变了，旧版不能直接覆盖升级，见 [docs/UPGRADE.md](docs/UPGRADE.md)。
 
 ## 特点
 
@@ -23,13 +23,14 @@ Violet MCP 是给 **[Violet](https://github.com/aileboeth-web/violet-companion)*
 - **凭据安全**：令牌和设备密钥用 Android Keystore 加密保存，支持轮换、撤销、全部清除。
 - **后台运行**：`specialUse` 前台服务，状态分运行 / 受限 / 已停止；你手动停止后不会被自动拉起。
 - **可观测**：各阶段耗时（`Server-Timing`）、诊断页、可导出的不含隐私的日志。
+- **应用内更新（1.4.0）**：设置 → 应用更新，可选“自动更新”（默认）、“只提醒”、“手动检查”。只从本仓库的 GitHub Releases 下载 `violet-mcp-<版本>-release.apk`，核对 `SHA256SUMS.txt`、包名、版本号和签名证书，任何一项不符都不安装；安卓系统通常还要你点一次“更新”确认（通知栏提示）。第一次需要在系统设置里允许本应用“安装未知应用”。更新与 MCP 无关，MCP 请求触发不了。
 - **不需要 Root，不需要无障碍权限。**
 
 > 真机上的后台存活、Doze、网络切换、开机自启**还没有在真机上验证过**，见 [docs/DEVICE_CHECKLIST.md](docs/DEVICE_CHECKLIST.md)。
 
 ## 快速开始
 
-1. 安装 `violet-mcp-1.3.0-release.apk`（GitHub Releases；应用名“Violet MCP”）。
+1. 安装 GitHub Releases 里最新的 `violet-mcp-<版本>-release.apk`（应用名“Violet MCP”）；以后的版本可以在应用里更新。
 2. 打开应用 → 设置 → 权限：允许**使用情况访问权限**（“电池无限制”建议开启）。在“工具与权限”页选择开放给 Violet 的工具。
 3. 按 [docs/DEPLOY_RELAY.md](docs/DEPLOY_RELAY.md) 在 VPS 上部署中继，把中继地址、设备密钥、证书指纹填进应用的“远程访问”，开启中继连接。
 4. 主页点 **启动**；在“安全”页复制访问令牌。
