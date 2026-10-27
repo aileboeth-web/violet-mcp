@@ -1,0 +1,4 @@
+# 复制为项目根目录下的 local.properties，填写本机 Android SDK 路径（需要 platform 35、build-tools 35）。
+# Windows 示例：sdk.dir=D\:/android-sdk
+# Linux / macOS 示例：sdk.dir=/home/me/Android/Sdk
+sdk.dir=/path/to/android-sdk

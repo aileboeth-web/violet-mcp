@@ -1,0 +1,37 @@
+# Gradle / Android
+.gradle/
+build/
+/app/build/
+/mcp-core/build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 发布签名（私钥，绝不提交）
+/signing/
+
+# Go 中继构建产物
+/relay/dist/
+
+# 发布包（通过 Release 附件分发，不进仓库）
+/dist/
+
+# Python
+__pycache__/
+.venv/
+
+# Kotlin 编译器缓存/日志
+.kotlin/
+
+# 任何位置的密钥库、口令与凭据文件都不得进入仓库或发布包（tools/package_release.py 还会再检查一次）
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+device.secret
+selfsigned.key
+.env

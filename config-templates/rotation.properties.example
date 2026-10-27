@@ -1,0 +1,11 @@
+# 签名密钥轮换模板（官方版本使用）。复制为 signing/rotation.properties；存在该文件时 Gradle 只产出未签名的
+# release 包，由 tools/sign_release.py 用“旧密钥 + 新密钥 + lineage”签名并校验。
+# 不能与 signing/keystore.properties 同时存在（Gradle 会直接报错）。
+lineage=signing/lineage-v1-v2.bin
+oldStoreFile=signing/eve-release.jks
+oldKeyAlias=eve-release
+oldStorePassword=CHANGE_ME
+newStoreFile=signing/eve-release-2.jks
+newKeyAlias=eve-release-2
+newStorePassword=CHANGE_ME
+rotationMinSdk=28

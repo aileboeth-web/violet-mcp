@@ -1,0 +1,30 @@
+[Unit]
+Description=Violet read-only MCP relay (phone <-> Violet, TLS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# 设备入口 :8443（TLS，公网），MCP 入口只监听本机 127.0.0.1:8787（Violet 在同一台机器时使用）
+ExecStart=/opt/violet-mcp-relay/violet-mcp-relay -data-dir /var/lib/violet-mcp-relay -device-listen :8443 -client-listen 127.0.0.1:8787
+Restart=always
+RestartSec=3
+
+# 以临时用户运行，数据目录 /var/lib/violet-mcp-relay 由 systemd 创建并持久保存（自签证书、device.secret）
+DynamicUser=yes
+StateDirectory=violet-mcp-relay
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
